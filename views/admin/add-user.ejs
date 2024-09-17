@@ -1,0 +1,28 @@
+<%- include('../partials/dashboardheader', { title: 'Add New User', role: 'admin' }) %>
+
+<h1>Add New User</h1>
+
+<form action="/admin/add-user" method="POST">
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select class="form-control" id="role" name="role" required>
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="admin">Admin</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="labpath" class="form-label">Lab Path (Optional)</label>
+        <input type="text" class="form-control" id="labpath" name="labpath">
+    </div>
+    <button type="submit" class="btn btn-success">Add User</button>
+</form>
+<%- include('../partials/dashboardfooter') %>

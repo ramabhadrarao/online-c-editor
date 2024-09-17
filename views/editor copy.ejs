@@ -1,0 +1,211 @@
+<%- include('partials/dashboardheader', { title: 'Code Editor', role: role }) %>
+<h1>Online Compiler</h1>
+<div class="full-height">
+    <div class="row py-2">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <!-- <label for="language-select" class="form-label">Select Language:</label> <br> -->
+                    <select id="language-select" class="form-select form-select-lg mb-3" style="width: 300px;">
+                        <option value="c">C</option>
+                    </select>
+                </div>
+                
+                <div class="col-auto">
+                    <select id="theme-selector" class="form-select form-select-lg mb-3" style="width: 300px;">
+                        <option value="vs-dark">Dark (vs-dark)</option>
+                        <option value="vs">Light (vs)</option>
+                        <option value="hc-black">High Contrast (hc-black)</option>
+                    </select>
+                </div>
+        
+                <div class="col-auto">
+                    <button id="increase-font" class="btn btn-danger"><i class="bi bi-plus-lg"></i></button>
+                </div>
+        
+                <div class="col-auto">
+                    <button id="decrease-font" class="btn btn-danger"><i class="bi bi-dash-lg"></i></button>
+                </div>
+        
+                <div class="col-auto">
+                    <button id="save-btn" class="btn btn-primary">Save</button>
+                </div>
+        
+                <div class="col-auto">
+                    <button id="run-btn" class="btn btn-success">Run</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Main Content: Editor and Terminal in one row -->
+    <div class="row mt-2">
+        <!-- Code Editor -->
+        <div class="editor-container">
+            <div id="editor"></div>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="terminal-container">
+            <div id="terminal"></div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.3/min/vs/loader.min.js"></script>
+
+<script>
+    const term = new Terminal();
+    term.open(document.getElementById('terminal'));
+
+    const languageToExtension = {
+        c: 'c',
+    };
+
+    let editor;
+    let currentLanguage = 'c';
+    let currentFileName = 'untitled.c';  // Default filename is 'untitled.c'
+    let currentFontSize = 14; // Default font size
+    // Initialize Monaco Editor
+// Initialize Monaco Editor
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.3/min/vs' }});
+require(['vs/editor/editor.main'], function () {
+    editor = monaco.editor.create(document.getElementById('editor'), {
+        value: '',
+        language: currentLanguage,
+        theme: 'vs-dark',
+        automaticLayout: true,
+        contextmenu: false,  // Disable right-click context menu
+        fontSize: currentFontSize ,
+    });
+
+    // Disable Copy (Ctrl+C or Cmd+C) and Paste (Ctrl+V or Cmd+V) via onKeyDown
+ // Disable Copy (Ctrl+C or Cmd+C) and Paste (Ctrl+V or Cmd+V) via onKeyDown
+editor.onKeyDown((event) => {
+    const { keyCode, ctrlKey, metaKey } = event;
+
+    // KeyCode for C is 67, and for V is 86
+    if ((ctrlKey || metaKey)) {
+        event.preventDefault();  // Prevent both copy (Ctrl+C) and paste (Ctrl+V)
+        alert("Copy and Paste are disabled.");  // Show an alert when the user attempts to copy or paste
+    }
+});
+  // Handle theme change
+  document.getElementById('theme-selector').addEventListener('change', function () {
+                const selectedTheme = this.value;
+                monaco.editor.setTheme(selectedTheme);
+            });
+// Increase font size
+document.getElementById('increase-font').addEventListener('click', function () {
+                currentFontSize += 2;
+                editor.updateOptions({ fontSize: currentFontSize });
+            });
+
+            // Decrease font size
+            document.getElementById('decrease-font').addEventListener('click', function () {
+                if (currentFontSize > 8) { // Prevent font size from getting too small
+                    currentFontSize -= 2;
+                    editor.updateOptions({ fontSize: currentFontSize });
+                }
+            });
+});
+
+
+    // Optional: Disable browser-level copy and paste functionality
+    document.addEventListener('copy', function(e) {
+        e.preventDefault();  // Prevent copy
+    });
+
+    document.addEventListener('paste', function(e) {
+        e.preventDefault();  // Prevent paste
+    });
+
+    // Handle Language Change
+    document.getElementById('language-select').addEventListener('change', function() {
+        currentLanguage = this.value;
+        monaco.editor.setModelLanguage(editor.getModel(), currentLanguage);
+        currentFileName = `untitled.${languageToExtension[currentLanguage]}`;
+    });
+
+    document.getElementById('save-btn').addEventListener('click', () => {
+    const code = editor.getValue();
+
+    // Prompt user for a filename with default value 'untitled.c'
+    const fileNameInput = prompt("Please enter the filename:", currentFileName);
+
+    if (fileNameInput !== null && fileNameInput.trim() !== '') {
+        currentFileName = fileNameInput.trim();  // Trim extra spaces
+    }
+
+    // Proceed with saving the file
+    fetch('/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, fileName: currentFileName || 'untitled.c' })  // Default if filename is empty
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Display the success message returned from the server
+            alert(data.success);
+        } else {
+            // Display the error message from the server
+            alert(`Error saving file / No Changes in file : ${data.error}`);
+        }
+    })
+    .catch(error => {
+        alert(`Error during the save operation: ${error.message}`);
+    });
+});
+
+
+    // Run the code
+    document.getElementById('run-btn').addEventListener('click', () => {
+        const code = editor.getValue();
+        const language = document.getElementById('language-select').value;
+
+        fetch('/compile-run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, fileName: currentFileName, language })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                term.write(`\r\n${data.error}\r\n`); // Show errors in the terminal
+            } else {
+                // Create WebSocket connection after compilation
+                const socket = new WebSocket('ws://localhost:3000');
+
+                // WebSocket open event
+                socket.onopen = () => console.log('WebSocket connection established.');
+
+                // WebSocket message event to handle program output
+                socket.onmessage = (event) => term.write(event.data);
+
+                // WebSocket close event
+                socket.onclose = () => console.log('WebSocket connection closed.');
+
+                // Handle terminal input (send it to WebSocket)
+                term.onData(data => socket.send(data));
+            }
+        });
+    });
+
+
+
+
+
+
+</script>
+
+<%- include('partials/dashboardfooter') %>

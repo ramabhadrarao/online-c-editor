@@ -1,0 +1,28 @@
+<%- include('partials/dashboardheader', { title: 'Your Programs', role: role }) %>
+
+<h2>Your Programs</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Filename</th>
+            
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% programs.forEach(program => { %>
+            <tr>
+                <td><%= program.filename %></td>
+                
+                <td><%= program.datetime %></td>
+                <td>
+                    <a href="/user-programs/<%= program.id %>/edit" class="btn btn-primary">Edit</a>
+                </td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+
+<%- include('partials/dashboardfooter') %>

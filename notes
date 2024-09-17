@@ -1,0 +1,12 @@
+docker pull gcc
+docker container ls
+docker rm -f gcc-container
+docker run -it -p 3000:3000 -v /tmp:/tmp --name gcc-container gcc bash
+docker container ls
+docker logs gcc-container
+docker start gcc-container
+docker container ls
+docker exec -it gcc-container bash
+docker logs gcc-container
+sudo ufw allow 3001
+sudo ufw reload

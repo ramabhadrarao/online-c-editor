@@ -1,0 +1,24 @@
+<%- include('../partials/dashboardheader', { title: 'Edit User', role: 'admin' }) %>
+
+<h1>Edit User</h1>
+
+<form action="/admin/edit-user/<%= user.id %>" method="POST">
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" name="username" value="<%= user.username %>" required>
+    </div>
+    <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select class="form-control" id="role" name="role" required>
+            <option value="student" <%= user.role === 'student' ? 'selected' : '' %>>Student</option>
+            <option value="faculty" <%= user.role === 'faculty' ? 'selected' : '' %>>Faculty</option>
+            <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="labpath" class="form-label">Lab Path (Optional)</label>
+        <input type="text" class="form-control" id="labpath" name="labpath" value="<%= user.labpath %>">
+    </div>
+    <button type="submit" class="btn btn-warning">Update User</button>
+</form>
+<%- include('../partials/dashboardfooter') %>

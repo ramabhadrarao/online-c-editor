@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title %></title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.3/min/vs/editor/editor.main.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+   /* General resets */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: 'Euclid Circular A', sans-serif;
+    background-color: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 24px;
+}
+
+/* Full height container */
+.full-height {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Flex row for editor and terminal */
+.row {
+    display: flex;
+    width: 100%; /* Ensure the row takes up the full width */
+    margin: 0; /* Remove margin */
+}
+
+/* Flex layout for editor and terminal */
+.editor-container {
+    width: 60%;  /* Set both to 50% of available width */
+    padding: 0;
+}
+
+.terminal-container {
+    width: 40%;  /* Set both to 50% of available width */
+    padding: 0;
+}
+
+/* Editor Styling */
+#editor {
+    height: calc(100vh - 220px); /* Adjust height based on remaining space */
+    background-color: #1e1e1e;
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #333;
+    width: 100%; /* Ensure full width inside container */
+}
+
+/* Terminal Styling */
+#terminal {
+    background-color: #000;
+    color: #00ff00;
+    padding: 10px;
+    overflow-y: auto;
+    height: calc(100vh - 220px); /* Adjust height based on remaining space */
+    width: 100%; /* Ensure full width inside container */
+    white-space: pre-wrap;
+    border-radius: 5px;
+    border: 1px solid #333;
+}
+
+/* Button styling */
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+/* Form Select styling */
+.form-select {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    background-color: #fff;
+    color: #333;
+}
+.container {
+            flex: 1;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            /* background-color: #333;
+            color: white; */
+            text-align: center;
+            /* padding: 10px; */
+        }
+/* Responsive styling for smaller screens */
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+    }
+
+    .editor-container, .terminal-container {
+        width: 100%; /* Set width to 100% for smaller screens */
+        height: 300px; /* Adjust heights for smaller screens */
+    }
+
+    #editor, #terminal {
+        height: 100%;
+    }
+
+    .btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">MyApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard/<%= role %>">Home</a>
+                    </li>
+
+                    <% if (role === 'admin') { %>
+                    <!-- Admin specific links -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/manage-users">Manage Users</a>
+                    </li>
+                    <% } else if (role === 'faculty') { %>
+                    <!-- Faculty specific links -->
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" href="/faculty/manage-courses">Manage Courses</a>
+                    </li> -->
+                    <% } else if (role === 'student') { %>
+                    <!-- Student specific links -->
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" href="/student/my-courses">My Courses</a>
+                    </li> -->
+                    <% } %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user-programs">User Programs</a>
+                    </li>
+                    <!-- Common Editor Menu Item pythoneditor-->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/editor">C Editor</a>
+                    </li>
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" href="/pythoneditor">Python Editor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/javaeditor">Java Editor</a>
+                    </li> -->
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/change-password">Change Password</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="row px-md-5">
